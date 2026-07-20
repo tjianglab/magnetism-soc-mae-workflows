@@ -116,6 +116,33 @@ wf = MagneticOrderingsSOCWF(
 4. Use the resulting SOC total-energy differences to analyze MAE.
 5. Store magnetic ordering metadata through atomate/FireWorks database tasks.
 
+## Batch Submission
+
+The `scripts/submit_poscars_by_magnetic_count.py` helper submits many POSCAR
+files in ascending magnetic-site-count order. This is useful for high-throughput
+runs because smaller magnetic cells are submitted first and are easier to debug.
+
+For a dry run:
+
+```bash
+python scripts/submit_poscars_by_magnetic_count.py --dry-run
+```
+
+To submit random-AFM workflows with one FM and five AFM trial configurations:
+
+```bash
+python scripts/submit_poscars_by_magnetic_count.py \
+  --num-afm 5 \
+  --num-samples 2 \
+  --nbands-factor 2 \
+  --kpoints-factor 4 \
+  --standard-cell primitive
+```
+
+Input files are matched with `*POSCAR` by default, for example
+`mp-1234.POSCAR` or `mp-2345.POSCAR`. The script uses the filename before
+`.POSCAR` as the workflow tag.
+
 ## Requirements
 
 These workflows assume a working atomate VASP environment with:
