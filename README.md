@@ -21,6 +21,20 @@ This repository currently contains two workflow variants:
   - Compares SOC energies along the three principal axes: `[100]`, `[010]`, and
     `[001]`.
 
+- `random_afm_hex_trig_tet_magnetism_soc_mae.py`
+  - For large hexagonal, trigonal, and tetragonal magnetic cells where
+    symmetry-based magnetic-ordering enumeration is impractical.
+  - Uses `random_afm_generator.py` to generate one FM reference and multiple
+    random zero-net-moment AFM trial configurations.
+  - The FM/AFM energy difference can be used as input for magnetic stability
+    analysis or approximate Curie-temperature trend estimates.
+
+- `random_afm_generator.py`
+  - Standalone pymatgen helper that splits each magnetic species into spin-up
+    and spin-down groups.
+  - If a magnetic species has an odd number of sites, it doubles one cell axis
+    before creating AFM configurations.
+
 ## Intended Use
 
 These files are designed as drop-in workflow templates for an atomate VASP
@@ -40,6 +54,16 @@ cp atomate/vasp/workflows/base/hex_trig_tet_magnetism_soc_mae.py \
 
 Then use the workflow class in the same way as the customized
 `magnetism_soc.py` workflow.
+
+For the random-AFM workflow, also make sure `random_afm_generator.py` is
+importable by Python. The simplest option is to place it in the same atomate
+workflow package:
+
+```text
+atomate/vasp/workflows/base/random_afm_generator.py
+```
+
+Alternatively, keep it elsewhere and add that directory to `PYTHONPATH`.
 
 ## Example
 
@@ -64,9 +88,29 @@ wf = MagneticOrderingsSOCWF(structure).get_wf(
 )
 ```
 
+For the random-AFM workflow:
+
+```python
+from atomate.vasp.workflows.base.magnetism_soc import MagneticOrderingsSOCWF
+
+wf = MagneticOrderingsSOCWF(
+    structure,
+    random_afm_kwargs={
+        "num_afm": 6,
+        "seed": 123,
+    },
+).get_wf(
+    num_samples=7,
+    nbands_factor=2,
+    kpoints_factor=2,
+    standard_cell="primitive",
+)
+```
+
 ## Workflow Summary
 
-1. Enumerate candidate collinear magnetic orderings using pymatgen.
+1. Enumerate candidate collinear magnetic orderings using pymatgen, or generate
+   random AFM candidates for large magnetic cells.
 2. Run VASP relaxation and static calculations for each ordering.
 3. Attach SOC calculations to the FM-derived branch.
 4. Use the resulting SOC total-energy differences to analyze MAE.
